@@ -1,11 +1,21 @@
 // Yippee! My first ever C program is a Connectome of the C. Elegans!
 #include <iostream>
 #include <unordered_map>
+#include <string>
+#include <algorithm>
 
-std::unordered_map<std::string, int[2]> postSynaptic;
+std::unordered_map<std::string, { void* fireNeuron, int[2] }> postSynaptic;
 
 int thisState = 0;
 int nextState = 1;
+
+int fireThreshold = 30;
+
+bool stimulateHungerNeurons = true;
+bool stimulateNoseTouchNeurons = false;
+bool stimulateFoodSenseNeurons = false;
+
+const std::string muscles = "MVU MVL MDL MVR MDR";
 
 void ADAL() {
     postSynaptic["ADAR"][nextState] += 2;
@@ -4994,4 +5004,44 @@ void createPostSynaptic() {
     postSynaptic["VD7"] = { 0, 0 };
     postSynaptic["VD8"] = { 0, 0 };
     postSynaptic["VD9"] = { 0, 0 };
+}
+
+void runconnectome() {
+    std::for_each(postSynaptic.begin(), postSynaptic.end(), [](const auto& pair) { // no idea what this is lmao
+        if((muscles.find(pair.first.substr(0, 2)) == std::string::npos) && (postSynaptic[pair.first][thisState] > fireThreshold))
+    })
+}
+
+void update() {
+    if(stimulateHungerNeurons) {
+        RIML();
+        RIMR();
+        RICL();
+        RICR();
+        //runconnectome();
+    }
+    if(stimulateNoseTouchNeurons) {
+        FLPR();
+        FLPL();
+        ASHL();
+        ASHR();
+        IL1VL();
+        IL1VR();
+        OLQDL();
+        OLQDR();
+        OLQVR();
+        OLQVL();
+        //runconnectome();
+    }
+    if(stimulateFoodSenseNeurons) {
+        ADFL();
+        ADFR();
+        ASGR();
+        ASGL();
+        ASIL();
+        ASIR();
+        ASJR();
+        ASJL();
+        //runconnectome();
+    }
 }
