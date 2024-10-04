@@ -5019,9 +5019,11 @@ void motorcontrol() {
     std::for_each(postSynaptic.begin(), postSynaptic.end(), [](const auto& pair) {
         if(postSynaptic[pair.first].fireNeuron == nullptr) {
             if((pair.first.find("MVL") != std::string::npos) || (pair.first.find("MDL") != std::string::npos)) {
+                // std::cout << "accumLeft = " << accumLeft << " + " << pair.first << ", " << postSynaptic[pair.first].values[nextState] << "\n";
                 accumLeft += postSynaptic[pair.first].values[nextState];
                 postSynaptic[pair.first].values[nextState] = 0;
             } else if((pair.first.find("MVR") != std::string::npos) || (pair.first.find("MDR") != std::string::npos)) {
+                // std::cout << "accumRight = " << accumRight << " + " << pair.first << ", " << postSynaptic[pair.first].values[nextState] << "\n";
                 accumRight += postSynaptic[pair.first].values[nextState];
                 postSynaptic[pair.first].values[nextState] = 0;
             }
@@ -5031,13 +5033,16 @@ void motorcontrol() {
 
 void runconnectome() {
     std::for_each(postSynaptic.begin(), postSynaptic.end(), [](const auto& pair) { // no idea what this is lmao
+        //if(pair.first == "ADAL") std::cout << pair.first << ": [ " << pair.second.values[thisState] << ", " << pair.second.values[nextState] << " ]\n";
         if((postSynaptic[pair.first].fireNeuron != nullptr) && (postSynaptic[pair.first].values[thisState] > fireThreshold)) {
             postSynaptic[pair.first].fireNeuron();
+            postSynaptic[pair.first].values[nextState] = 0;
         }
 
         motorcontrol();
 
         std::for_each(postSynaptic.begin(), postSynaptic.end(), [](const auto& pair) {
+            std::cout << postSynaptic[pair.first].values[thisState] << ", " << postSynaptic[pair.first].values[nextState] << "\n";
             postSynaptic[pair.first].values[thisState] = postSynaptic[pair.first].values[nextState];
         });
 
@@ -5085,6 +5090,6 @@ int main() {
     createPostSynaptic();
     while(true) {
         update();
-        std::cout << "accumLeft: " << accumLeft << ", accumRight: " << accumRight << "\n";
+        // std::cout << "thisState: " << thisState << ", nextState: " << nextState << "\n";
     }
 }
