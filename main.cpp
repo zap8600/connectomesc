@@ -4,12 +4,20 @@
 #include <string>
 #include <algorithm>
 
-std::unordered_map<std::string, struct { void (*fireNeuron)(), int values[2] }> postSynaptic;
+typedef struct {
+    void (*fireNeuron)();
+    int values[2];
+} neuron;
+
+std::unordered_map<std::string, neuron> postSynaptic;
 
 int thisState = 0;
 int nextState = 1;
 
 int fireThreshold = 30;
+
+int accumLeft = 0;
+int accumRight = 0;
 
 bool stimulateHungerNeurons = true;
 bool stimulateNoseTouchNeurons = false;
@@ -4749,7 +4757,7 @@ void createPostSynaptic() {
     postSynaptic["M3R"] = { M3R, { 0, 0 } };
     postSynaptic["M4"] = { M4, { 0, 0 } };
     postSynaptic["M5"] = { M5, { 0, 0 } };
-    postSynaptic["MANAL"] = { MANAL, { 0, 0 } };
+    postSynaptic["MANAL"] = { nullptr, { 0, 0 } }; // why doesnt this have weight????
     postSynaptic["MCL"] = { MCL, { 0, 0 } };
     postSynaptic["MCR"] = { MCR, { 0, 0 } };
     postSynaptic["MDL01"] = { nullptr, { 0, 0 } };
@@ -5004,13 +5012,28 @@ void createPostSynaptic() {
     postSynaptic["VD9"] = { VD9, { 0, 0 } };
 }
 
+void motorcontrol() {
+    //suboptimal
+    std::for_each(postSynaptic.begin(), postSynaptic.end(), [](const auto& pair) {
+        if(postSynaptic[pair.first].fireNeuron == nullptr) {
+            if((pair.first.find("MVL") != std::string::npos) || (pair.first.find("MDL") != std::string::npos)) {
+                accumLeft += postSynaptic[pair.first].values[nextState];
+                postSynaptic[pair.first].values[nextState] = 0;
+            } else if((pair.first.find("MVR") != std::string::npos) || (pair.first.find("MDR") != std::string::npos)) {
+                accumRight += postSynaptic[pair.first].values[nextState];
+                postSynaptic[pair.first].values[nextState] = 0;
+            }
+        }
+    });
+}
+
 void runconnectome() {
     std::for_each(postSynaptic.begin(), postSynaptic.end(), [](const auto& pair) { // no idea what this is lmao
-        if((pair.second.fireNeuron != nullptr) && (postSynaptic[pair.first].values[thisState] > fireThreshold)) {
+        if((postSynaptic[pair.first].fireNeuron != nullptr) && (postSynaptic[pair.first].values[thisState] > fireThreshold)) {
             postSynaptic[pair.first].fireNeuron();
         }
 
-        // motorcontrol();
+        motorcontrol();
 
         std::for_each(postSynaptic.begin(), postSynaptic.end(), [](const auto& pair) {
             postSynaptic[pair.first].values[thisState] = postSynaptic[pair.first].values[nextState];
@@ -5053,5 +5076,13 @@ void update() {
         ASJR();
         ASJL();
         runconnectome();
+    }
+}
+
+int main() {
+    createPostSynaptic();
+    while(true) {
+        update();
+        std::cout << "accumLeft: " << accumLeft << ", accumRight: " << accumRight << "\n";
     }
 }
