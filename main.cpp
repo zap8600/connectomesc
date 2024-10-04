@@ -5013,6 +5013,8 @@ void createPostSynaptic() {
 }
 
 void motorcontrol() {
+    accumLeft = 0;
+    accumRight = 0;
     //suboptimal
     std::for_each(postSynaptic.begin(), postSynaptic.end(), [](const auto& pair) {
         if(postSynaptic[pair.first].fireNeuron == nullptr) {
