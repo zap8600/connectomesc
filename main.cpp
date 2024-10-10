@@ -5038,18 +5038,18 @@ void runconnectome() {
             postSynaptic[pair.first].fireNeuron();
             postSynaptic[pair.first].values[nextState] = 0;
         }
-
-        motorcontrol();
-
-        std::for_each(postSynaptic.begin(), postSynaptic.end(), [](const auto& pair) {
-            std::cout << postSynaptic[pair.first].values[thisState] << ", " << postSynaptic[pair.first].values[nextState] << "\n";
-            postSynaptic[pair.first].values[thisState] = postSynaptic[pair.first].values[nextState];
-        });
-
-        int temp = thisState;
-        thisState = nextState;
-        nextState = temp;
     });
+
+    motorcontrol();
+
+    std::for_each(postSynaptic.begin(), postSynaptic.end(), [](const auto& pair) {
+        //std::cout << postSynaptic[pair.first].values[thisState] << ", " << postSynaptic[pair.first].values[nextState] << "\n";
+        postSynaptic[pair.first].values[thisState] = postSynaptic[pair.first].values[nextState];
+    });
+
+    int temp = thisState;
+    thisState = nextState;
+    nextState = temp;
 }
 
 void update() {
@@ -5090,6 +5090,7 @@ int main() {
     createPostSynaptic();
     while(true) {
         update();
+        std::cout << "accumLeft: " << accumLeft << ", accumRight: " << accumRight << "\n";
         // std::cout << "thisState: " << thisState << ", nextState: " << nextState << "\n";
     }
 }
