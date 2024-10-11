@@ -1,2 +1,2 @@
-# celeganscpp
-The Connectome of the C. Elegans in C++.
+# celegansc
+The Connectome of the C. Elegans in C.
