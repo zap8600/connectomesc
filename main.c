@@ -2,6 +2,7 @@
 // At least, it was C++ until [clever](https://github.com/cleverca22) rewrote it and optimized it.
 // Now it's a normal C program again, and it runs really fast now.
 #include <stdio.h> // At least, as fast as you can get with printf...
+#include <stdbool.h> 
 
 typedef struct {
     void (*fireNeuron)();
