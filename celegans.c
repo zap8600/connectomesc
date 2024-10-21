@@ -2,12 +2,7 @@
 // At least, it was C++ until [clever](https://github.com/cleverca22) rewrote it and optimized it.
 // Now it's a normal C program again, and it runs really fast now.
 #include <stdio.h> // At least, as fast as you can get with printf...
-#include <stdint.h>
-#include <stdbool.h>
-#include <stdlib.h>
-
-// This file is being kept so that I can use it for only this connectome on embedded devices
-// Without the overhead of going through weights and stuff
+#include <stdbool.h> 
 
 typedef struct {
     void (*fireNeuron)();
@@ -35,15 +30,9 @@ const int fireThreshold = 30;
 int accumLeft = 0;
 int accumRight = 0;
 
-bool stimulateHungerNeurons = true;
-bool stimulateNoseTouchNeurons = false;
-bool stimulateFoodSenseNeurons = false;
-
-void dendriteAccumulate(int32_t neuron) {
-    for(int32_t i = 0; i < postSynaptic[neuron].connections; i++) {
-        postSynaptic[postSynaptic[neuron].connectionweights[i][0]].values[nextState] += postSynaptic[neuron].connectionweights[i][1];
-    }
-}
+const bool stimulateHungerNeurons = true;
+const bool stimulateNoseTouchNeurons = false;
+const bool stimulateFoodSenseNeurons = false;
 
 void ADAL() {
     postSynaptic[nADAR].values[nextState] += 2;
@@ -5076,7 +5065,7 @@ void update() {
         RIMR();
         RICL();
         RICR();
-        //runconnectome();
+        runconnectome();
     }
     if(stimulateNoseTouchNeurons) {
         FLPR();
@@ -5089,7 +5078,7 @@ void update() {
         OLQDR();
         OLQVR();
         OLQVL();
-        //runconnectome();
+        runconnectome();
     }
     if(stimulateFoodSenseNeurons) {
         ADFL();
@@ -5100,107 +5089,14 @@ void update() {
         ASIR();
         ASJR();
         ASJL();
-        //runconnectome();
+        runconnectome();
     }
 }
 
 int main() {
     createPostSynaptic();
-    /*
     while(true) {
         update();
         printf("accumLeft: %d, accumRight: %d\n", accumLeft, accumRight);
     }
-    */
-    FILE* celegans = fopen("celegans.bin", "w");
-    int t = neuron_count;
-    fwrite(&t, sizeof(int), 1, celegans);
-    for(int i = 0; i < neuron_count; i++) {
-        if(postSynaptic[i].fireNeuron != NULL) {
-            postSynaptic[i].fireNeuron();
-            int connectioncount = 0;
-            int **connectionweights = (int **)malloc(sizeof(int *));
-            for(int j = 0; j < neuron_count; j++) {
-                if(j == i) continue;
-                if(postSynaptic[j].values[nextState] != 0) {
-                    connectioncount += 1;
-                    connectionweights = (int **)realloc(connectionweights, connectioncount * sizeof(int *));
-                    connectionweights[connectioncount - 1] = (int *)malloc(2 * sizeof(int));
-                    connectionweights[connectioncount - 1][0] = j;
-                    connectionweights[connectioncount - 1][1] = postSynaptic[j].values[nextState];
-                }
-            }
-            fwrite(&connectioncount, sizeof(int), 1, celegans);
-            for(int k = 0; k < connectioncount; k++) {
-                fwrite((connectionweights[k]), 2 * sizeof(int), 1, celegans);
-            }
-            for(int l = 0; l < connectioncount; l++) {
-                free(connectionweights[l]);
-            }
-            free(connectionweights);
-            createPostSynaptic();
-        } else {
-            int u = 0;
-            fwrite(&u, sizeof(int), 1, celegans);
-        }
-    }
-    int v = 3;
-    bool stimulations[3];
-    stimulations[0] = true;
-    stimulations[1] = false;
-    stimulations[2] = false;
-    fwrite(&v, sizeof(int), 1, celegans);
-    fwrite(stimulations, 3 * sizeof(bool), 1, celegans);
-    int **stimulationtargetcount = (int **)malloc(3 * sizeof(int *));
-    for(int m = 0; m < 3; m++) {
-        stimulationtargetcount[m] = (int *)malloc(sizeof(int));
-    }
-    int **stimulationtargets = (int **)malloc(3 * sizeof(int *));
-    for(int n = 0; n < 3; n++) {
-        stimulationtargets[n] = (int *)malloc(sizeof(int));
-    }
-    update();
-    for(int o = 0; o < neuron_count; o++) {
-        if(postSynaptic[o].values[nextState] != 0) {
-            stimulationtargetcount[0][0] += 1;
-            stimulationtargets[0] = (int *)realloc(stimulationtargets[0], stimulationtargetcount[0][0] * sizeof(int));
-            stimulationtargets[0][stimulationtargetcount[0][0] - 1] = o;
-        }
-    }
-    createPostSynaptic();
-    stimulateHungerNeurons = false;
-    stimulateNoseTouchNeurons = true;
-    update();
-    for(int p = 0; p < neuron_count; p++) {
-        if(postSynaptic[p].values[nextState] != 0) {
-            stimulationtargetcount[1][0] += 1;
-            stimulationtargets[1] = (int *)realloc(stimulationtargets[1], stimulationtargetcount[1][0] * sizeof(int));
-            stimulationtargets[1][stimulationtargetcount[1][0] - 1] = p;
-        }
-    }
-    createPostSynaptic();
-    stimulateNoseTouchNeurons = false;
-    stimulateFoodSenseNeurons = true;
-    update();
-    for(int q = 0; q < neuron_count; q++) {
-        if(postSynaptic[q].values[nextState] != 0) {
-            stimulationtargetcount[2][0] += 1;
-            stimulationtargets[2] = (int *)realloc(stimulationtargets[2], stimulationtargetcount[2][0] * sizeof(int));
-            stimulationtargets[2][stimulationtargetcount[2][0] - 1] = q;
-        }
-    }
-    for(int r = 0; r < 3; r++) {
-        fwrite(stimulationtargetcount[r], sizeof(int), 1, celegans);
-    }
-    for(int s = 0; s < 3; s++) {
-        fwrite(stimulationtargets[s], stimulationtargetcount[s][0] * sizeof(int), 1, celegans);
-        free(stimulationtargetcount[s]);
-        free(stimulationtargets[s]);
-    }
-    free(stimulationtargets);
-    free(stimulationtargetcount);
-    fwrite(&thisState, sizeof(int), 1, celegans);
-    fwrite(&nextState, sizeof(int), 1, celegans);
-    fwrite(&fireThreshold, sizeof(int), 1, celegans);
-    fclose(celegans);
 }
