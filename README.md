@@ -1,2 +1,2 @@
-# celegansc
-The Connectome of the C. Elegans in C.
+# connectomesc
+The Connectomes of model organisms in C.
